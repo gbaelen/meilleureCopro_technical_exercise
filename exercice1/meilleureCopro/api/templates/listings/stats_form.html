@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeilleureCopro - Statistiques Immobilières</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .result-card {
+            margin-top: 20px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4">MeilleureCopro - Statistiques des charges de copropriété</h1>
+                
+                <!-- Message display area -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Rechercher des statistiques</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="statsForm">
+                            <div class="mb-3">
+                                <label for="queryType" class="form-label">Type de recherche</label>
+                                <select class="form-select" id="queryType" name="query_type" required>
+                                    <option value="">Sélectionner...</option>
+                                    <option value="department">Département</option>
+                                    <option value="city">Ville</option>
+                                    <option value="postal_code">Code Postal</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="queryValue" class="form-label">Valeur</label>
+                                <input type="text" class="form-control" id="queryValue" name="query_value" 
+                                    placeholder="Ex: 75, Paris, 75012" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Rechercher</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Loading indicator -->
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2">Chargement des statistiques...</p>
+                </div>
+                
+                <!-- Results display -->
+                <div class="card result-card" id="resultsCard">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Résultats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsContent">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Ajouter une annonce BienIci</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% url 'api:api_add_listing' %}" method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="bienIciUrl" class="form-label">URL de l'annonce</label>
+                                <input type="url" class="form-control" id="bienIciUrl" name="url"
+                                    placeholder="https://www.bienici.com/annonce/vente/paris-12e/appartement/3pieces/century-21-202_2907_27607" required>
+                                <div class="form-text">Ex: https://www.bienici.com/annonce/vente/paris-12e/appartement/3pieces/century-21-202_2907_27607</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const statsForm = document.getElementById('statsForm');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultsCard = document.getElementById('resultsCard');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            statsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading indicator
+                loadingIndicator.style.display = 'block';
+                resultsCard.style.display = 'none';
+                
+                // Prepare form data
+                const queryType = document.getElementById('queryType').value;
+                const queryValue = document.getElementById('queryValue').value;
+                
+                // Make API request
+                fetch(`/api/stats/?query_type=${encodeURIComponent(queryType)}&query_value=${encodeURIComponent(queryValue)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Données non trouvées ou erreur serveur');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Format and display results
+                        let html = `
+                            <h6>Statistiques pour ${formatQueryType(data.query_type)} : <strong>${data.query_value}</strong></h6>
+                            <p>Nombre d'annonces : <strong>${data.count}</strong></p>
+                            
+                            <h6 class="mt-3">Charges de copropriété :</h6>
+                            <ul>
+                                <li>Moyenne : <strong>${formatCurrency(data.mean_hoa_fees)}</strong></li>
+                                <li>Quantile 10% : <strong>${formatCurrency(data.quantile_10_hoa_fees)}</strong></li>
+                                <li>Quantile 90% : <strong>${formatCurrency(data.quantile_90_hoa_fees)}</strong></li>
+                            </ul>
+                            
+                            <h6 class="mt-3">Charges de copropriété par m² :</h6>
+                            <ul>
+                                <li>Moyenne : <strong>${formatCurrency(data.mean_hoa_fees_per_sqm)}</strong></li>
+                                <li>Quantile 10% : <strong>${formatCurrency(data.quantile_10_hoa_fees_per_sqm)}</strong></li>
+                                <li>Quantile 90% : <strong>${formatCurrency(data.quantile_90_hoa_fees_per_sqm)}</strong></li>
+                            </ul>
+                        `;
+                        
+                        resultsContent.innerHTML = html;
+                        loadingIndicator.style.display = 'none';
+                        resultsCard.style.display = 'block';
+                    })
+                    .catch(error => {
+                        resultsContent.innerHTML = `
+                            <div class="alert alert-danger">
+                                ${error.message}
+                            </div>
+                        `;
+                        loadingIndicator.style.display = 'none';
+                        resultsCard.style.display = 'block';
+                    });
+            });
+            
+            // Helper functions
+            function formatQueryType(type) {
+                const types = {
+                    'department': 'Département',
+                    'city': 'Ville',
+                    'postal_code': 'Code Postal'
+                };
+                return types[type] || type;
+            }
+            
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('fr-FR', { 
+                    style: 'currency', 
+                    currency: 'EUR',
+                    maximumFractionDigits: 2
+                }).format(value);
+            }
+        });
+    </script>
+</body>
+</html>

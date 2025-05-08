@@ -1,0 +1,121 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Django REST framework
+api-auth/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Node (if using frontend frameworks with Django)
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Docker
+docker-compose.override.yml
+
+# Project specific
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+secrets.json
+
+# DRF documentation
+docs/_build/
+
+# Local development settings
+*/settings/local.py
+*/settings/development.py
+
+# Static assets collected
+static/
+
+# Media files
+media/
+
+# Virtual environment
+.virtualenv/
+
+./data/dataset_annonces.csv.tar.gz
