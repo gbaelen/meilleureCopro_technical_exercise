@@ -20,8 +20,8 @@ API simple de statistiques sur des données d'annonces immobilières pour des be
 1. **Cloner le dépôt**
 
 ```bash
-git clone <repository-url>
-cd meilleurecopro_api
+git clone https://github.com/gbaelen/meilleureCopro_technical_exercise.git
+cd meilleureCopro_technical_exercise/exercice1/
 ```
 
 2. **Créer un environnement virtuel**
@@ -40,6 +40,7 @@ pip install -r requirements.txt
 4. **Initialiser la base de données**
 
 ```bash
+cd meilleureCopro
 python manage.py migrate
 ```
 
@@ -53,6 +54,11 @@ wget https://storage.googleapis.com/data.meilleurecopro.com/stage/dataset_annonc
 
 ```bash
 python manage.py import_listings --file dataset_annonces.csv.tar.gz
+```
+
+Note: Il y a un dossier data où vous pouvez mettre le tar.gz, dans ce cas, la commande sera:
+```bash
+python manage.py import_listings --file ../data/dataset_annonces.csv.tar.gz
 ```
 
 7. **Lancer le serveur de développement**
